@@ -1,0 +1,24 @@
+# --- PYTHON ---
+.venv/
+venv/
+**/venv/
+**/env/
+
+**/__pycache__/
+**/*.pyc
+
+# --- .NET / C# ---
+# Игнорирай компилираните файлове (тези са най-тежките)
+**/bin/
+**/obj/
+
+# Игнорирай временните файлове на Visual Studio
+.vs/
+**/*.user
+
+# --- REDIS ---
+
+
+# --- PROJECT SPECIFIC ---
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep

@@ -1,0 +1,133 @@
+﻿@{
+    ViewData["Title"] = "Distributed Image Lab";
+}
+
+<div class="text-center">
+    <h1 class="display-4 mb-4">Distributed Image Lab v4.0</h1>
+    
+    <div class="alert alert-info shadow-sm">
+        <strong>☁️ Времето навън:</strong> @ViewBag.Weather
+    </div>
+
+    <div class="card p-4 mx-auto shadow" style="max-width: 600px;">
+        <form method="post" enctype="multipart/form-data" asp-action="UploadImage" onsubmit="showLoading()">
+            
+            <div class="mb-3 text-start">
+                <label class="form-label fw-bold">1. Избери снимка:</label>
+                <input type="file" name="file" class="form-control" accept="image/*" required />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3 text-start">
+                    <label class="form-label fw-bold">2. Завъртане:</label>
+                    <select name="rotation" class="form-select">
+                        <option value="none" selected>--- Без завъртане ---</option>
+                        <option value="left">Наляво (90°)</option>
+                        <option value="right">Надясно (-90°)</option>
+                        <option value="180">Обърни (180°)</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3 text-start">
+                    <label class="form-label fw-bold">3. Ефект:</label>
+                    <select name="effect" class="form-select">
+                        <option value="none" selected>--- Без ефект ---</option>
+                        <option value="grayscale">Черно-бяло</option>
+                        <option value="sepia">Сепия</option>
+                        <option value="invert">Негатив</option>
+                        <option value="blur">Замазване</option>
+                        <option value="sharpen">Изостряне</option>
+                        <option value="emboss">Релеф</option>
+                        <option value="contour">Контури</option>
+                        <option value="remove_bg">Премахни фон</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4 text-start">
+                <label class="form-label fw-bold">4. Воден знак (Текст):</label>
+                <input type="text" name="watermarkText" class="form-control" placeholder="Напр. Copyright 2026" />
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg w-100">🚀 Изпълни всичко</button>
+        </form>
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-success mt-4">@ViewBag.Message</div>
+    }
+
+    <h3 class="mt-5 text-muted">📁 Обработени изображения (Галерия)</h3>
+    <hr />
+    
+    <div class="row mt-3" id="gallery-container">
+        @if (ViewBag.Images != null)
+        {
+            @foreach (var imgName in ViewBag.Images)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <img src="~/uploads/@imgName" class="card-img-top" alt="Processed Image">
+                        <div class="card-body">
+                            <p class="card-text small text-muted text-truncate">@imgName</p>
+                            <a href="~/uploads/@imgName" download class="btn btn-sm btn-outline-primary">⬇️ Изтегли</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    function showLoading() {
+        const btn = document.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Обработка...';
+    }
+
+    let lastImageCount = -1;
+
+    function updateGallery() {
+        fetch('/Home/GetProcessedImages')
+            .then(response => response.json())
+            .then(images => {
+                if (images.length === lastImageCount) return;
+                lastImageCount = images.length;
+
+                const galleryContainer = document.getElementById("gallery-container");
+                galleryContainer.innerHTML = "";
+
+                if (images.length === 0) {
+                    galleryContainer.innerHTML = '<div class="col-12"><p class="text-muted">Няма обработени изображения.</p></div>';
+                    return;
+                }
+
+                images.forEach(imgName => {
+                    const html = `
+                        <div class="col-md-4 mb-4">
+                            <div class="card shadow-sm fade-in">
+                                <img src="/uploads/${imgName}" class="card-img-top" alt="Processed Image">
+                                <div class="card-body text-center">
+                                    <p class="card-text small text-muted text-truncate">${imgName}</p>
+                                    <a href="/uploads/${imgName}" download class="btn btn-sm btn-outline-primary">⬇️ Изтегли</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    galleryContainer.innerHTML += html;
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    setInterval(updateGallery, 3000);
+</script>
+
+<style>
+    .fade-in { animation: fadeIn 0.8s ease-in-out; }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
