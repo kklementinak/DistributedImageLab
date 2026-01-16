@@ -7,8 +7,12 @@ namespace WebApp.Controllers;
 
 public class HomeController : Controller
 {
-    private static ConnectionMultiplexer _redis = ConnectionMultiplexer.Connect("localhost");
+    private static Lazy<ConnectionMultiplexer> _lazyRedis = new Lazy<ConnectionMultiplexer>(() => {
+    return ConnectionMultiplexer.Connect("localhost");
+});
 
+// 2. Свойство за лесен достъп
+public static ConnectionMultiplexer Redis => _lazyRedis.Value;
     public async Task<IActionResult> Index()
     {
         try {
@@ -67,7 +71,7 @@ public class HomeController : Controller
             
             string jsonMessage = JsonSerializer.Serialize(taskData);
 
-            var db = _redis.GetDatabase();
+            var db = Redis.GetDatabase();
             await db.ListLeftPushAsync("image_queue", jsonMessage);
 
             ViewBag.Message = "Снимката е изпратена за комбинирана обработка!";

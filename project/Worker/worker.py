@@ -84,7 +84,8 @@ while True:
 
                     directory = os.path.dirname(file_path)
                     filename = os.path.basename(file_path)
-                    new_path = os.path.join(directory, f"processed_{rotation}_{effect}_{filename}")
+                    filename_no_ext = os.path.splitext(filename)[0]
+                    new_path = os.path.join(directory, f"processed_{rotation}_{effect}_{filename_no_ext}.png")
                     
                     processed.save(new_path)
                     print(f" [V] Done! Saved as {os.path.basename(new_path)}")
