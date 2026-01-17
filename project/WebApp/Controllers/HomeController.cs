@@ -8,7 +8,7 @@ namespace WebApp.Controllers;
 public class HomeController : Controller
 {
     private static Lazy<ConnectionMultiplexer> _lazyRedis = new Lazy<ConnectionMultiplexer>(() => {
-    return ConnectionMultiplexer.Connect("localhost");
+    return ConnectionMultiplexer.Connect("127.0.0.1");
 });
 
 // 2. Свойство за лесен достъп
@@ -45,6 +45,7 @@ public static ConnectionMultiplexer Redis => _lazyRedis.Value;
     }
 
     [HttpPost]
+    [HttpPost]
     public async Task<IActionResult> UploadImage(IFormFile file, string rotation, string effect, string watermarkText)
     {
         if (file != null && file.Length > 0)
@@ -60,7 +61,6 @@ public static ConnectionMultiplexer Redis => _lazyRedis.Value;
                 await file.CopyToAsync(stream);
             }
 
-            // Пращаме всички параметри поотделно
             var taskData = new 
             { 
                 Path = fullPath, 
@@ -71,14 +71,21 @@ public static ConnectionMultiplexer Redis => _lazyRedis.Value;
             
             string jsonMessage = JsonSerializer.Serialize(taskData);
 
-            var db = Redis.GetDatabase();
-            await db.ListLeftPushAsync("image_queue", jsonMessage);
-
-            ViewBag.Message = "Снимката е изпратена за комбинирана обработка!";
+            try 
+            {
+                var db = Redis.GetDatabase();
+                await db.ListLeftPushAsync("image_queue", jsonMessage);
+                ViewBag.Message = "Снимката е изпратена успешно!";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = $"ГРЕШКА: {ex.Message}";
+            }
         }
         
         return await Index(); 
     }
+        
 
     [HttpGet]
     public IActionResult GetProcessedImages()
