@@ -10,7 +10,7 @@ if exist "project\Worker\venv" (
     rmdir /s /q "project\Worker\venv"
     echo    - venv deleted.
 ) else (
-    echo    - venv not found (already clean).
+    echo    - venv not found ^(already clean^).
 )
 
 echo.
